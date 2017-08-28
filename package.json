@@ -1,15 +1,17 @@
 {
-  "name": "picol-generator",
-  "version": "2.0.0",
-  "description": "PICOL Icon generator",
-  "main": "index.php",
+  "name": "pantone-picker",
+  "version": "1.0.0",
+  "description": "Just a color picker with similar PANTONE® code matcher",
+  "main": "src/js/PANTONE-picker.min.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PicolSigns/PICOL-Generator/"
+    "url": "https://github.com/gubi/PANTONE-picker/"
   },
   "keywords": [
-    "PICOL",
-    "icons"
+    "PANTONE",
+    "color",
+    "picker",
+    "colopicker"
   ],
   "author": "Alessandro Gubitosi <gubi.ale@iod.io>",
   "license": "GPL-3.0",
