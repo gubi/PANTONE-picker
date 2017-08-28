@@ -1,2 +1,2 @@
 # PANTONE-picker
-Just a color picker with similar PANTONE® code matcher
+Just a color picker with similar PANTONE<sup>®</sup> code matcher
