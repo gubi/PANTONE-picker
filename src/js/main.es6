@@ -19,7 +19,7 @@ $(document).ready(function(){
 			g: 0,
 			b: 0
 		},
-		onColorChange: (rgb, hsv) => {
+		onColorChange: (rgb, hsb) => {
 			let hex = COLOR_SPACE.RGB2HEX(rgb),
 				cmyk = COLOR_SPACE.rgb2ymck(rgb),
 				p = cp.getProximity(),

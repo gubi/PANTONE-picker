@@ -35,8 +35,8 @@ var ColorSpace = function () {
 			return wsColor;
 		}
 	}, {
-		key: "rgb2hsv",
-		value: function rgb2hsv() {
+		key: "rgb2hsb",
+		value: function rgb2hsb() {
 			var r = void 0,
 			    g = void 0,
 			    b = void 0,
@@ -96,8 +96,8 @@ var ColorSpace = function () {
 			};
 		}
 	}, {
-		key: "hsv2rgb",
-		value: function hsv2rgb() {
+		key: "hsb2rgb",
+		value: function hsb2rgb() {
 			var hue = void 0,
 			    saturation = void 0,
 			    value = void 0;

@@ -33,7 +33,7 @@ $(document).ready(function () {
 			g: 0,
 			b: 0
 		},
-		onColorChange: function onColorChange(rgb, hsv) {
+		onColorChange: function onColorChange(rgb, hsb) {
 			var hex = COLOR_SPACE.RGB2HEX(rgb),
 			    cmyk = COLOR_SPACE.rgb2ymck(rgb),
 			    p = cp.getProximity(),
@@ -199,7 +199,7 @@ var ColorCanvas = function () {
 				bri = 1 - y / h;
 				for (x = 0; x < w; x++) {
 					sat = x / w;
-					var rgb = COLOR_SPACE.hsv2rgb(hue, sat * 255, bri * 255);
+					var rgb = COLOR_SPACE.hsb2rgb(hue, sat * 255, bri * 255);
 					//rgb = COLOR_SPACE.getWebSafeColor(rgb);
 					imgData.data[index++] = rgb.r;
 					imgData.data[index++] = rgb.g;
@@ -225,7 +225,7 @@ var ColorCanvas = function () {
 
 				for (x = 0; x < w; x++) {
 					var bri = 1 - x / w,
-					    rgb = COLOR_SPACE.hsv2rgb(hue, sat * 255, bri * 255);
+					    rgb = COLOR_SPACE.hsb2rgb(hue, sat * 255, bri * 255);
 					//rgb = COLOR_SPACE.getWebSafeColor(rgb);
 					imgData.data[index++] = rgb.r;
 					imgData.data[index++] = rgb.g;
@@ -244,7 +244,7 @@ var ColorCanvas = function () {
 	}, {
 		key: "setColor",
 		value: function setColor(c) {
-			var hsb = COLOR_SPACE.rgb2hsv(c.r, c.g, c.b);
+			var hsb = COLOR_SPACE.rgb2hsb(c.r, c.g, c.b);
 			if (this.hueBar) {
 				this.selZ = hsb.s / 255;
 				this.setXY(255 - hsb.v, 255 - hsb.h / 360 * 255);
@@ -261,7 +261,7 @@ var ColorCanvas = function () {
 			    s = this.hueBar ? 255 : this.selX,
 			    v = this.hueBar ? this.selX : this.selY;
 			h = (h - Math.floor(h)) * 360;
-			return COLOR_SPACE.hsv2rgb(h, s, 255 - v);
+			return COLOR_SPACE.hsb2rgb(h, s, 255 - v);
 		}
 	}, {
 		key: "repaint",
@@ -317,7 +317,7 @@ var ColorPicker = function () {
 				g: 128,
 				b: 128
 			},
-			onColorChange: function onColorChange(rgb, hsv) {},
+			onColorChange: function onColorChange(rgb, hsb) {},
 			drawColorMapPointer: null,
 			drawHueMapPointer: null,
 			fnDrawPointer1: true,
@@ -470,22 +470,22 @@ var ColorPicker = function () {
 				}
 			});
 
-			$("input[name=H], input[name=S], input[name=V]").on("keyup", function (event) {
+			$("input[name=H], input[name=S], input[name=Br]").on("keyup", function (event) {
 				var v = $(event.target).val();
 				if (!isNaN(parseFloat(v)) && isFinite(v)) {
-					var hsv = COLOR_SPACE.rgb2hsv(_this2.currentColor);
-					// hsv.s = parseInt((hsv.s / 255 * 100).toFixed(0));
-					// hsv.v = parseInt((hsv.v / 255 * 100).toFixed(0));
+					var hsb = COLOR_SPACE.rgb2hsb(_this2.currentColor);
+					// hsb.s = parseInt((hsb.s / 255 * 100).toFixed(0));
+					// hsb.v = parseInt((hsb.v / 255 * 100).toFixed(0));
 					v = parseFloat(v);
 					switch (event.target.name) {
 						case "H":
-							v = _this2.CLAMP(v, 0, 359);hsv.h = v;break;
+							v = _this2.CLAMP(v, 0, 359);hsb.h = v;break;
 						case "S":
-							v = _this2.CLAMP(v, 0, 100);hsv.s = v * 255 / 100;break;
+							v = _this2.CLAMP(v, 0, 100);hsb.s = v * 255 / 100;break;
 						case "V":
-							v = _this2.CLAMP(v, 0, 100);hsv.v = v * 255 / 100;break;
+							v = _this2.CLAMP(v, 0, 100);hsb.v = v * 255 / 100;break;
 					}
-					_this2.currentColor = COLOR_SPACE.hsv2rgb(hsv);
+					_this2.currentColor = COLOR_SPACE.hsb2rgb(hsb);
 					_this2.setColor(_this.currentColor);
 					_this2.colorChanged(_this.currentColor);
 				} else {
@@ -493,7 +493,7 @@ var ColorPicker = function () {
 				}
 			});
 
-			$("input[name=Y], input[name=M], input[name=C], input[name=K]").on("keyup", function (event) {
+			$("input[name=C], input[name=Y], input[name=M], input[name=K]").on("keyup", function (event) {
 				var v = $(event.target).val();
 				if (!isNaN(parseFloat(v)) && isFinite(v)) {
 					var ymck = COLOR_SPACE.rgb2ymck(_this2.currentColor);
@@ -576,22 +576,23 @@ var ColorPicker = function () {
 			}
 
 			if (this.onColorChange) {
-				this.onColorChange(color, COLOR_SPACE.rgb2hsv(color));
+				this.onColorChange(color, COLOR_SPACE.rgb2hsb(color));
 			}
 		}
 	}, {
 		key: "setColorText",
 		value: function setColorText(color) {
 			$("input[name=HEX]").val(COLOR_SPACE.RGB2HEX(color));
+
 			$("input[name=R]").val(color.r);
 			$("input[name=G]").val(color.g);
 			$("input[name=B]").val(color.b);
-			var hsv = COLOR_SPACE.rgb2hsv(color);
-			hsv.s = (hsv.s / 255 * 100).toFixed(0);
-			hsv.v = (hsv.v / 255 * 100).toFixed(0);
-			$("input[name=H]").val(hsv.h);
-			$("input[name=S]").val(hsv.s);
-			$("input[name=V]").val(hsv.v);
+			var hsb = COLOR_SPACE.rgb2hsb(color);
+			hsb.s = (hsb.s / 255 * 100).toFixed(0);
+			hsb.v = (hsb.v / 255 * 100).toFixed(0);
+			$("input[name=H]").val(hsb.h);
+			$("input[name=S]").val(hsb.s);
+			$("input[name=Br]").val(hsb.v);
 			var ymck = COLOR_SPACE.rgb2ymck(color);
 			$("input[name=Y]").val(ymck.y);
 			$("input[name=M]").val(ymck.m);
@@ -719,7 +720,7 @@ var ColorPicker = function () {
 			e.append($("<div>", {
 				"class": "canvas-color-picker" + cls,
 				"id": "cp-" + idext
-			}).css(this.css).append($("<div>", { "class": "color-map canvas-container" }).append($("<canvas>", { "class": "colormap" }))).append($("<div>", { "class": "color-bar canvas-container" }).append($("<canvas>", { "class": "huebar" }))).append($("<div>", { "class": "preview" }).append($("<div>", { "class": "cur-color" })).append($("<div>", { "class": "old-color" }))).append($("<div>", { "class": "form" }).append($("<div>", { "class": "hor-div" }).append($("<div>", { "class": "hsb" }).append($("<label>").append("H:").append($("<input>", { "type": "text", "name": "H", "size": "3", "maxlength": "3" })).append("&deg;")).append($("<label>").append("S:").append($("<input>", { "type": "text", "name": "S", "size": "3", "maxlength": "3" })).append("%")).append($("<label>").append("B:").append($("<input>", { "type": "text", "name": "V", "size": "3", "maxlength": "3" })).append("%"))).append($("<div>", { "class": "rgb" }).append($("<label>").append("R:").append($("<input>", { "type": "text", "name": "R", "size": "3", "maxlength": "3" }))).append($("<label>").append("G:").append($("<input>", { "type": "text", "name": "G", "size": "3", "maxlength": "3" }))).append($("<label>").append("B:").append($("<input>", { "type": "text", "name": "B", "size": "3", "maxlength": "3" })))).append($("<div>", { "class": "cmyk" }).append($("<label>").append("C:").append($("<input>", { "type": "text", "name": "C", "size": "3", "maxlength": "3" })).append("%")).append($("<label>").append("M:").append($("<input>", { "type": "text", "name": "M", "size": "3", "maxlength": "3" })).append("%")).append($("<label>").append("Y:").append($("<input>", { "type": "text", "name": "Y", "size": "3", "maxlength": "3" })).append("%")).append($("<label>").append("K:").append($("<input>", { "type": "text", "name": "K", "size": "3", "maxlength": "3" })).append("%")))).append($("<div>", { "class": "color" }).append($("<label>").append("HEX: #").append($("<input>", { "type": "text", "name": "HEX", "id": "HEX", "size": "6", "maxlength": "6" })))).append($("<div>", { "class": "proximity" }).append($("<label>").append("Color distance:").append($("<select>", { "id": "proximity" }).append($.map(options, function (v) {
+			}).css(this.css).append($("<div>", { "class": "color-map canvas-container" }).append($("<canvas>", { "class": "colormap" }))).append($("<div>", { "class": "color-bar canvas-container" }).append($("<canvas>", { "class": "huebar" }))).append($("<div>", { "class": "preview" }).append($("<div>", { "class": "cur-color" })).append($("<div>", { "class": "old-color" }))).append($("<div>", { "class": "form" }).append($("<div>", { "class": "hor-div" }).append($("<div>", { "class": "hsb" }).append($("<label>").append("H:").append($("<input>", { "type": "text", "name": "H", "size": "3", "maxlength": "3" })).append("&deg;")).append($("<label>").append("S:").append($("<input>", { "type": "text", "name": "S", "size": "3", "maxlength": "3" })).append("%")).append($("<label>").append("B:").append($("<input>", { "type": "text", "name": "Br", "size": "3", "maxlength": "3" })).append("%"))).append($("<div>", { "class": "rgb" }).append($("<label>").append("R:").append($("<input>", { "type": "text", "name": "R", "size": "3", "maxlength": "3" }))).append($("<label>").append("G:").append($("<input>", { "type": "text", "name": "G", "size": "3", "maxlength": "3" }))).append($("<label>").append("B:").append($("<input>", { "type": "text", "name": "B", "size": "3", "maxlength": "3" })))).append($("<div>", { "class": "cmyk" }).append($("<label>").append("C:").append($("<input>", { "type": "text", "name": "C", "size": "3", "maxlength": "3" })).append("%")).append($("<label>").append("M:").append($("<input>", { "type": "text", "name": "M", "size": "3", "maxlength": "3" })).append("%")).append($("<label>").append("Y:").append($("<input>", { "type": "text", "name": "Y", "size": "3", "maxlength": "3" })).append("%")).append($("<label>").append("K:").append($("<input>", { "type": "text", "name": "K", "size": "3", "maxlength": "3" })).append("%")))).append($("<div>", { "class": "color" }).append($("<label>").append("HEX: #").append($("<input>", { "type": "text", "name": "HEX", "id": "HEX", "size": "6", "maxlength": "6" })))).append($("<div>", { "class": "proximity" }).append($("<label>").append("Color distance:").append($("<select>", { "id": "proximity" }).append($.map(options, function (v) {
 				return $("<option>", { "value": v, "selected": v == 32 ? "selected" : null }).append(v);
 			})))))).each(function () {
 				_this3.element = $(_this3);
@@ -883,8 +884,8 @@ var ColorSpace = function () {
 			return wsColor;
 		}
 	}, {
-		key: "rgb2hsv",
-		value: function rgb2hsv() {
+		key: "rgb2hsb",
+		value: function rgb2hsb() {
 			var r = void 0,
 			    g = void 0,
 			    b = void 0,
@@ -944,8 +945,8 @@ var ColorSpace = function () {
 			};
 		}
 	}, {
-		key: "hsv2rgb",
-		value: function hsv2rgb() {
+		key: "hsb2rgb",
+		value: function hsb2rgb() {
 			var hue = void 0,
 			    saturation = void 0,
 			    value = void 0;

@@ -17,7 +17,7 @@ class ColorSpace {
 		return wsColor;
 	}
 
-	rgb2hsv() {
+	rgb2hsb() {
 		let r, g, b, h, s, v, min, delta;
 		if(arguments.length === 1) {
 			r = arguments[0].r;
@@ -66,7 +66,7 @@ class ColorSpace {
 		};
 	}
 
-	hsv2rgb() {
+	hsb2rgb() {
 		let hue,
 			saturation,
 			value;

@@ -21,7 +21,7 @@ class ColorPicker {
 				g: 128,
 				b: 128
 			},
-			onColorChange: function(rgb, hsv) {},
+			onColorChange: function(rgb, hsb) {},
 			drawColorMapPointer: null,
 			drawHueMapPointer: null,
 			fnDrawPointer1: true,
@@ -160,19 +160,19 @@ class ColorPicker {
 			}
 		});
 
-		$("input[name=H], input[name=S], input[name=V]").on("keyup", (event) => {
+		$("input[name=H], input[name=S], input[name=Br]").on("keyup", (event) => {
 			let v = $(event.target).val();
 			if(!isNaN(parseFloat(v)) && isFinite(v)) {
-				var hsv = COLOR_SPACE.rgb2hsv(this.currentColor);
-				// hsv.s = parseInt((hsv.s / 255 * 100).toFixed(0));
-				// hsv.v = parseInt((hsv.v / 255 * 100).toFixed(0));
+				var hsb = COLOR_SPACE.rgb2hsb(this.currentColor);
+				// hsb.s = parseInt((hsb.s / 255 * 100).toFixed(0));
+				// hsb.v = parseInt((hsb.v / 255 * 100).toFixed(0));
 				v = parseFloat(v);
 				switch(event.target.name) {
-					case "H": v = this.CLAMP(v, 0, 359); hsv.h = v;					break;
-					case "S": v = this.CLAMP(v, 0, 100); hsv.s = (v * 255 / 100);	break;
-					case "V": v = this.CLAMP(v, 0, 100); hsv.v = (v * 255 / 100);	break;
+					case "H": v = this.CLAMP(v, 0, 359); hsb.h = v;					break;
+					case "S": v = this.CLAMP(v, 0, 100); hsb.s = (v * 255 / 100);	break;
+					case "V": v = this.CLAMP(v, 0, 100); hsb.v = (v * 255 / 100);	break;
 				}
-				this.currentColor = COLOR_SPACE.hsv2rgb(hsv);
+				this.currentColor = COLOR_SPACE.hsb2rgb(hsb);
 				this.setColor(_this.currentColor);
 				this.colorChanged(_this.currentColor);
 			} else {
@@ -180,7 +180,7 @@ class ColorPicker {
 			}
 		});
 
-		$("input[name=Y], input[name=M], input[name=C], input[name=K]").on("keyup", (event) => {
+		$("input[name=C], input[name=Y], input[name=M], input[name=K]").on("keyup", (event) => {
 			let v = $(event.target).val();
 			if(!isNaN(parseFloat(v)) && isFinite(v)) {
 				var ymck = COLOR_SPACE.rgb2ymck(this.currentColor);
@@ -254,21 +254,22 @@ class ColorPicker {
 		}
 
 		if(this.onColorChange) {
-			this.onColorChange(color,COLOR_SPACE.rgb2hsv(color));
+			this.onColorChange(color,COLOR_SPACE.rgb2hsb(color));
 		}
 	}
 
 	setColorText(color) {
 		$("input[name=HEX]").val(COLOR_SPACE.RGB2HEX(color));
+
 		$("input[name=R]").val(color.r);
 		$("input[name=G]").val(color.g);
 		$("input[name=B]").val(color.b);
-		var hsv = COLOR_SPACE.rgb2hsv(color);
-		hsv.s = (hsv.s / 255 * 100).toFixed(0);
-		hsv.v = (hsv.v / 255 * 100).toFixed(0);
-		$("input[name=H]").val(hsv.h);
-		$("input[name=S]").val(hsv.s);
-		$("input[name=V]").val(hsv.v);
+		var hsb = COLOR_SPACE.rgb2hsb(color);
+		hsb.s = (hsb.s / 255 * 100).toFixed(0);
+		hsb.v = (hsb.v / 255 * 100).toFixed(0);
+		$("input[name=H]").val(hsb.h);
+		$("input[name=S]").val(hsb.s);
+		$("input[name=Br]").val(hsb.v);
 		var ymck = COLOR_SPACE.rgb2ymck(color);
 		$("input[name=Y]").val(ymck.y);
 		$("input[name=M]").val(ymck.m);
@@ -419,7 +420,7 @@ class ColorPicker {
 						).append(
 							$("<label>").append("S:").append($("<input>", {"type": "text", "name": "S", "size": "3", "maxlength": "3"})).append("%")
 						).append(
-							$("<label>").append("B:").append($("<input>", {"type": "text", "name": "V", "size": "3", "maxlength": "3"})).append("%")
+							$("<label>").append("B:").append($("<input>", {"type": "text", "name": "Br", "size": "3", "maxlength": "3"})).append("%")
 						)
 					).append(
 						$("<div>", {"class": "rgb"}).append(

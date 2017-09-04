@@ -93,7 +93,7 @@ class ColorCanvas {
 			bri = 1 - y / h;
 			for(x = 0; x < w; x++) {
 				sat = x / w;
-				let rgb = COLOR_SPACE.hsv2rgb(hue, sat * 255, bri * 255);
+				let rgb = COLOR_SPACE.hsb2rgb(hue, sat * 255, bri * 255);
 				//rgb = COLOR_SPACE.getWebSafeColor(rgb);
 				imgData.data[index++] = rgb.r;
 				imgData.data[index++] = rgb.g;
@@ -117,7 +117,7 @@ class ColorCanvas {
 
 			for(x = 0; x < w; x++){
 				let bri = 1 - x / w,
-					rgb = COLOR_SPACE.hsv2rgb(hue, sat * 255, bri * 255);
+					rgb = COLOR_SPACE.hsb2rgb(hue, sat * 255, bri * 255);
 				//rgb = COLOR_SPACE.getWebSafeColor(rgb);
 				imgData.data[index++] = rgb.r;
 				imgData.data[index++] = rgb.g;
@@ -134,7 +134,7 @@ class ColorCanvas {
 	}
 
 	setColor(c) {
-		let hsb = COLOR_SPACE.rgb2hsv(c.r, c.g, c.b);
+		let hsb = COLOR_SPACE.rgb2hsb(c.r, c.g, c.b);
 		if(this.hueBar) {
 			this.selZ = hsb.s / 255;
 			this.setXY(255 - hsb.v, 255 - (hsb.h/360) * 255);
@@ -150,7 +150,7 @@ class ColorCanvas {
 			s = (this.hueBar) ? 255 : this.selX,
 			v = (this.hueBar) ? this.selX : this.selY;
 		h = (h - Math.floor(h)) * 360;
-		return COLOR_SPACE.hsv2rgb(h, s, 255 - v);
+		return COLOR_SPACE.hsb2rgb(h, s, 255 - v);
 	}
 
 	repaint() {

@@ -30,7 +30,7 @@ $(document).ready(function () {
 			g: 0,
 			b: 0
 		},
-		onColorChange: function onColorChange(rgb, hsv) {
+		onColorChange: function onColorChange(rgb, hsb) {
 			var hex = COLOR_SPACE.RGB2HEX(rgb),
 			    cmyk = COLOR_SPACE.rgb2ymck(rgb),
 			    p = cp.getProximity(),

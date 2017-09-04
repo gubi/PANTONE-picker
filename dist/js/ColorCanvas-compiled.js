@@ -114,7 +114,7 @@ var ColorCanvas = function () {
 				bri = 1 - y / h;
 				for (x = 0; x < w; x++) {
 					sat = x / w;
-					var rgb = COLOR_SPACE.hsv2rgb(hue, sat * 255, bri * 255);
+					var rgb = COLOR_SPACE.hsb2rgb(hue, sat * 255, bri * 255);
 					//rgb = COLOR_SPACE.getWebSafeColor(rgb);
 					imgData.data[index++] = rgb.r;
 					imgData.data[index++] = rgb.g;
@@ -140,7 +140,7 @@ var ColorCanvas = function () {
 
 				for (x = 0; x < w; x++) {
 					var bri = 1 - x / w,
-					    rgb = COLOR_SPACE.hsv2rgb(hue, sat * 255, bri * 255);
+					    rgb = COLOR_SPACE.hsb2rgb(hue, sat * 255, bri * 255);
 					//rgb = COLOR_SPACE.getWebSafeColor(rgb);
 					imgData.data[index++] = rgb.r;
 					imgData.data[index++] = rgb.g;
@@ -159,7 +159,7 @@ var ColorCanvas = function () {
 	}, {
 		key: "setColor",
 		value: function setColor(c) {
-			var hsb = COLOR_SPACE.rgb2hsv(c.r, c.g, c.b);
+			var hsb = COLOR_SPACE.rgb2hsb(c.r, c.g, c.b);
 			if (this.hueBar) {
 				this.selZ = hsb.s / 255;
 				this.setXY(255 - hsb.v, 255 - hsb.h / 360 * 255);
@@ -176,7 +176,7 @@ var ColorCanvas = function () {
 			    s = this.hueBar ? 255 : this.selX,
 			    v = this.hueBar ? this.selX : this.selY;
 			h = (h - Math.floor(h)) * 360;
-			return COLOR_SPACE.hsv2rgb(h, s, 255 - v);
+			return COLOR_SPACE.hsb2rgb(h, s, 255 - v);
 		}
 	}, {
 		key: "repaint",
