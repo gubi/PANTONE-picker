@@ -5,14 +5,9 @@ var aPMS = ["Black 0961 C","Black C","Blue 072 C","Blue 0821 C","Bright Green C"
 	MIN_PMSColorMatching = 360;
 
 class PMS {
-	// if(!Array.prototype.indexOf) {
-	// 	Array.prototype.indexOf = function(val, fromIndex) {
-	// 		if(typeof(fromIndex) != "number") fromIndex = 0;
-	// 		for (var index = fromIndex,len = this.length; index < len; index++)
-	// 			if(this[index] == val) return index;
-	// 		return -1;
-	// 	};
-	// }
+	constructor() {
+		this.aDis = [];
+	}
 
 	PMS2RGB(pms) {
 		let i = aPMS.indexOf(pms);
@@ -27,12 +22,12 @@ class PMS {
 	GetDistance(pms) {
 		// must call after PMSColorMatching()
 		let i = aPMS.indexOf(pms);
-		return (i >= 0) ? aDis[i] : 0;
+		return (i >= 0) ? this.aDis[i] : 0;
 	}
 
 	pmsMinDistance() {
 		// must call after PMSColorMatching()
-		return aDis.min();
+		return this.aDis.min();
 	}
 
 	PMSColorMatching(rgb, distance) {
@@ -40,9 +35,8 @@ class PMS {
 			distance = 32;
 		}
 		let a = [],
-			aDis = [];
+			m = this.RGB2PMS(rgb);
 		//exact pms
-		m = RGB2PMS(rgb);
 		if(m !== "") {
 			a.push(m);
 		}
@@ -51,19 +45,19 @@ class PMS {
 			g = parseInt(rgb.substr(2, 2), 16),
 			b = parseInt(rgb.substr(4, 2), 16);
 
-		for(let i = 0; i < aRGB.length; i++){
-			rgb1 = aRGB[i];
-			let r1 = parseInt(rgb1.substr(0, 2), 16);
-			g1 = parseInt(rgb1.substr(2, 2), 16);
-			b1 = parseInt(rgb1.substr(4, 2), 16);
+		for(let i = 0; i < aRGB.length; i++) {
+			let rgb1 = aRGB[i],
+				r1 = parseInt(rgb1.substr(0, 2), 16),
+				g1 = parseInt(rgb1.substr(2, 2), 16),
+				b1 = parseInt(rgb1.substr(4, 2), 16);
 
 			//3D distense
-			aDis[i] = Math.sqrt(Math.pow((r - r1), 2) + Math.pow((g - g1), 2) + Math.pow((b - b1), 2));
+			this.aDis[i] = Math.sqrt(Math.pow((r - r1), 2) + Math.pow((g - g1), 2) + Math.pow((b - b1), 2));
 		}
-		MIN_PMSColorMatching = Math.min.apply(Math, aDis);
+		MIN_PMSColorMatching = Math.min.apply(Math, this.aDis);
 
-		for(let i = 0; i < aDis.length; i++){
-			if(aDis[i] <= distance){
+		for(let i = 0; i < this.aDis.length; i++) {
+			if(this.aDis[i] <= distance) {
 				if(a.indexOf(aPMS[i]) == -1) {
 					a.push(aPMS[i]);
 				}

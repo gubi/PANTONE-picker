@@ -1,0 +1,191 @@
+
+@import "colours";
+
+
+.canvas-color-picker, #matching, #PMScolors {
+  font-family: sans-serif;
+}
+
+// .color-picker-container {
+//
+// }
+
+#color_sample {
+  border: $grey 1px dotted;
+  padding: 5px;
+}
+
+#matching {
+  font-family: monospace;
+  margin: 15px 0;
+}
+
+#color-picker {
+  min-height: 250px;
+  min-width: 500px;
+}
+
+.canvas-color-picker {
+  background: transparent;
+  height: 260px;
+  position: relative;
+  width: 400px;
+
+  .popup {
+    background: linear-gradient($very-ligh-grey, $light-grey);
+    border: 1px solid $light-light-grey;
+    box-shadow: 3px 2px 5px $dark-grey;
+  }
+
+  .canvas-container {
+    // position: absolute;
+    border-radius: 4.5px;
+    cursor: crosshair;
+    display: inline-block;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .color-map {
+    margin: 0 5px 0 0;
+    // bottom: 5px;
+    // left: 0;
+    // width: auto;
+    // top: 0;
+  }
+
+  .color-bar {
+    // bottom: 5px;
+    // right: 215px;
+    // top: 0;
+    width: 30px;
+  }
+
+  .preview {
+    border: 1px solid $grey;
+    border-radius: 4.5px;
+    height: 55px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 193px;
+
+    .cur-color {
+      float: left;
+      height: 55px;
+      position: relative;
+      width: 50%;
+    }
+
+    .old-color {
+      float: right;
+      height: 55px;
+      width: 50%;
+    }
+  }
+
+  .form {
+    font-family: monospace;
+    height: 85px;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    right: 0;
+    text-align: left;
+    top: 70px;
+    width: 193px;
+
+    br {
+      clear: both;
+    }
+
+    .hor-div {
+      display: table;
+      width: 100%;
+    }
+
+    .hsb {
+      display: table-cell;
+    }
+
+    .rgb {
+      display: table-cell;
+      padding: 0 13px;
+    }
+
+    .cmyk {
+      display: table-cell;
+    }
+
+    .color {
+      clear: both;
+      position: relative;
+      top: 5px;
+      width: 100%;
+
+      input {
+        display: inline;
+        float: none;
+        margin: 0 2px;
+        text-align: left;
+        width: 45px;
+      }
+    }
+
+    label {
+      display: block;
+      margin: 2px 0;
+    }
+
+    input:not(#HEX), select {
+      margin-left: 5px;
+      margin-right: 2px;
+    }
+
+    input {
+      border: $grey 1px solid;
+      border-radius: 0;
+      display: inline-block;
+      padding: 2px 3px;
+      text-align: right;
+      vertical-align: middle;
+      width: 22px;
+    }
+
+    .proximity {
+      clear: both;
+      left: 0;
+      position: relative;
+      top: 10px;
+    }
+  }
+}
+
+#PMScolors {
+  td {
+    padding: 5px;
+
+    &:first-child, &:last-child { padding: 0; }
+
+    a {
+      border: $grey 1px solid;
+      // border-radius: 3px;
+      color: $black;
+      display: block;
+      padding: 5px;
+      text-decoration: none;
+
+      &:hover {
+        border: $dark-grey 1px solid;
+        box-shadow: 0 0 3px $dark-grey;
+        text-decoration: none;
+      }
+
+      div {
+        height: 90px;
+        margin-top: 5px;
+        width: 90px;
+      }
+    }
+  }
+}

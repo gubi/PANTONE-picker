@@ -12,7 +12,7 @@ module.exports = function(grunt) {
 		sass: {
 			dist: {
 				files: {
-					"dist/css/PANTONE-picker.min.css": "src/scss/PANTONE-picker.scss"
+					"dist/css/main.min.css": "src/scss/main.scss"
 				},
 				options: {
 					// banner: "/*\n * <%= pkg.name %>\n *\n * @version\tv<%= pkg.version %>\n * @date\t<%= grunt.template.today("yyyy-mm-dd") %>\n * @author\t<%= pkg.author %>\n */\n",
@@ -36,7 +36,7 @@ module.exports = function(grunt) {
 					// if the source file has an extension of es6 then
 					// we change the name of the source file accordingly.
 					// The result file's extension is always .js
-					"dist/js/PANTONE-picker.js": ["dist/js/PANTONE-picker-compiled.js"]
+					"dist/js/main.js": ["dist/js/main-compiled.js"]
 				}
 			}
 		},
@@ -68,7 +68,7 @@ module.exports = function(grunt) {
 				drop_console: true,
 				expand: true,
 				files: {
-					"dist/js/PANTONE-picker.min.js": ["dist/js/PANTONE-picker.js"]
+					"dist/js/main.min.js": ["dist/js/main.js"]
 				},
 				mangle: true,
 				sourceMap: false

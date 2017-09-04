@@ -15,7 +15,7 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "^3.1.1",
+    "jquery": "^3.2.1",
     "materialize": "^0.100.1"
   },
   "keywords": [

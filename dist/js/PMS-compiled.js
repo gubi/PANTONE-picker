@@ -17,20 +17,12 @@ var aPMS = ["Black 0961 C", "Black C", "Blue 072 C", "Blue 0821 C", "Bright Gree
 var PMS = function () {
 	function PMS() {
 		_classCallCheck(this, PMS);
+
+		this.aDis = [];
 	}
 
 	_createClass(PMS, [{
 		key: "PMS2RGB",
-
-		// if(!Array.prototype.indexOf) {
-		// 	Array.prototype.indexOf = function(val, fromIndex) {
-		// 		if(typeof(fromIndex) != "number") fromIndex = 0;
-		// 		for (var index = fromIndex,len = this.length; index < len; index++)
-		// 			if(this[index] == val) return index;
-		// 		return -1;
-		// 	};
-		// }
-
 		value: function PMS2RGB(pms) {
 			var i = aPMS.indexOf(pms);
 			return i >= 0 ? aRGB[i] : "";
@@ -46,13 +38,13 @@ var PMS = function () {
 		value: function GetDistance(pms) {
 			// must call after PMSColorMatching()
 			var i = aPMS.indexOf(pms);
-			return i >= 0 ? aDis[i] : 0;
+			return i >= 0 ? this.aDis[i] : 0;
 		}
 	}, {
 		key: "pmsMinDistance",
 		value: function pmsMinDistance() {
 			// must call after PMSColorMatching()
-			return aDis.min();
+			return this.aDis.min();
 		}
 	}, {
 		key: "PMSColorMatching",
@@ -61,9 +53,8 @@ var PMS = function () {
 				distance = 32;
 			}
 			var a = [],
-			    aDis = [];
+			    m = this.RGB2PMS(rgb);
 			//exact pms
-			m = RGB2PMS(rgb);
 			if (m !== "") {
 				a.push(m);
 			}
@@ -73,18 +64,18 @@ var PMS = function () {
 			    b = parseInt(rgb.substr(4, 2), 16);
 
 			for (var i = 0; i < aRGB.length; i++) {
-				rgb1 = aRGB[i];
-				var r1 = parseInt(rgb1.substr(0, 2), 16);
-				g1 = parseInt(rgb1.substr(2, 2), 16);
-				b1 = parseInt(rgb1.substr(4, 2), 16);
+				var rgb1 = aRGB[i],
+				    r1 = parseInt(rgb1.substr(0, 2), 16),
+				    g1 = parseInt(rgb1.substr(2, 2), 16),
+				    b1 = parseInt(rgb1.substr(4, 2), 16);
 
 				//3D distense
-				aDis[i] = Math.sqrt(Math.pow(r - r1, 2) + Math.pow(g - g1, 2) + Math.pow(b - b1, 2));
+				this.aDis[i] = Math.sqrt(Math.pow(r - r1, 2) + Math.pow(g - g1, 2) + Math.pow(b - b1, 2));
 			}
-			MIN_PMSColorMatching = Math.min.apply(Math, aDis);
+			MIN_PMSColorMatching = Math.min.apply(Math, this.aDis);
 
-			for (var _i = 0; _i < aDis.length; _i++) {
-				if (aDis[_i] <= distance) {
+			for (var _i = 0; _i < this.aDis.length; _i++) {
+				if (this.aDis[_i] <= distance) {
 					if (a.indexOf(aPMS[_i]) == -1) {
 						a.push(aPMS[_i]);
 					}
