@@ -419,7 +419,7 @@ class ColorPicker {
 						).append(
 							$("<label>").append("S:").append($("<input>", {"type": "text", "name": "S", "size": "3", "maxlength": "3"})).append("%")
 						).append(
-							$("<label>").append("V:").append($("<input>", {"type": "text", "name": "V", "size": "3", "maxlength": "3"})).append("%")
+							$("<label>").append("B:").append($("<input>", {"type": "text", "name": "V", "size": "3", "maxlength": "3"})).append("%")
 						)
 					).append(
 						$("<div>", {"class": "rgb"}).append(
