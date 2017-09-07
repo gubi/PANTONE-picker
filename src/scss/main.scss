@@ -231,10 +231,19 @@ $bg_alpha_grid: url("../../img/transparent_pattern.gif") top left repeat;
       }
 
       .pantone-data {
-        background-color: white;
+        background-color: $white;
         font-family: Helvetica;
         padding: 5px;
       }
     }
   }
+}
+
+footer {
+  bottom: 10px;
+  color: $dark-grey;
+  font-family: sans-serif;
+  position: absolute;
+  text-align: center;
+  width: 100%;
 }
