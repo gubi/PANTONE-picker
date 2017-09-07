@@ -1,8 +1,9 @@
 
 @import "colours";
 
+$bg_alpha_grid: url("../../img/transparent_pattern.gif") top left repeat;
 
-.canvas-color-picker, #matching, #PMScolors {
+.canvas-color-picker, #matching, #PANTONEcolors {
   font-family: sans-serif;
 }
 
@@ -13,11 +14,23 @@
 #color_sample {
   border: $grey 1px dotted;
   padding: 5px;
+
+  &::after {
+    background: $bg_alpha_grid;
+    content: "";
+    display: inline-block;
+    height: 26px;
+    margin: 0 0 0 -55px;
+    position: absolute;
+    width: 61px;
+    z-index: -1;
+  }
 }
 
 #matching {
   font-family: monospace;
-  margin: 15px 0;
+  line-height: 25px;
+  margin: 5px 0;
 }
 
 #color-picker {
@@ -38,7 +51,6 @@
   }
 
   .canvas-container {
-    // position: absolute;
     border-radius: 4.5px;
     cursor: crosshair;
     display: inline-block;
@@ -48,20 +60,35 @@
 
   .color-map {
     margin: 0 5px 0 0;
-    // bottom: 5px;
-    // left: 0;
-    // width: auto;
-    // top: 0;
   }
 
   .color-bar {
-    // bottom: 5px;
-    // right: 215px;
-    // top: 0;
+    margin: 0 20px 0 0;
     width: 30px;
   }
 
+  .alpha-bar {
+    background: $bg_alpha_grid;
+    border: $grey 1px solid;
+    cursor: row-resize;
+    width: 30px;
+
+    &::after {
+      border-bottom: $grey 1px dashed;
+      border-top: $grey 1px dashed;
+      content: "";
+      display: block;
+      height: 100%;
+      margin-left: -10px;
+      position: absolute;
+      top: 0;
+      width: 50px;
+      z-index: -10;
+    }
+  }
+
   .preview {
+    background: $bg_alpha_grid;
     border: 1px solid $grey;
     border-radius: 4.5px;
     height: 55px;
@@ -71,6 +98,8 @@
     width: 193px;
 
     .cur-color {
+      border-right: $grey 1px dotted;
+      cursor: pointer;
       float: left;
       height: 55px;
       position: relative;
@@ -78,9 +107,10 @@
     }
 
     .old-color {
+      cursor: pointer;
       float: right;
       height: 55px;
-      width: 50%;
+      width: 49%;
     }
   }
 
@@ -161,18 +191,17 @@
   }
 }
 
-#PMScolors {
+#PANTONEcolors {
   td {
     padding: 5px;
 
     &:first-child, &:last-child { padding: 0; }
 
     a {
+      background: url("../../img/transparent_pattern.gif") top left repeat;
       border: $grey 1px solid;
-      // border-radius: 3px;
       color: $black;
       display: block;
-      padding: 5px;
       text-decoration: none;
 
       &:hover {
@@ -181,10 +210,30 @@
         text-decoration: none;
       }
 
-      div {
-        height: 90px;
-        margin-top: 5px;
-        width: 90px;
+      .reg {
+        font-family: monospace;
+        font-size: 11px;
+        vertical-align: 2px;
+      }
+
+      .alpha {
+        color: $dark-grey;
+        font-size: .6em;
+        font-weight: lighter;
+        line-height: 11px;
+      }
+
+      .pantone-sample {
+        height: 100px;
+        min-width: 100px;
+        width: 100%;
+
+      }
+
+      .pantone-data {
+        background-color: white;
+        font-family: Helvetica;
+        padding: 5px;
       }
     }
   }

@@ -6,26 +6,32 @@ import ColorCanvas from "./ColorCanvas.es6";
 var COLOR_SPACE = new ColorSpace();
 
 class ColorPicker {
+	/**
+	 * Class constructor
+	 * @param  object 							options   						The options object
+	 */
 	constructor(options) {
 		let settings = {
-			linkedElement: this,
+			targetObject: this,
 			flat: true,
 			width: 600,
 			height: 250,
 			showColor: true,
-			showRGB: false,
+			showRGBA: false,
 			showHSB: false,
 			showPreview: true,
 			initialColor: {
 				r: 64,
 				g: 128,
-				b: 128
+				b: 128,
+				a: 100
 			},
-			onColorChange: function(rgb, hsb) {},
+			onColorChange: function(rgba, hsb) {},
 			drawColorMapPointer: null,
 			drawHueMapPointer: null,
 			fnDrawPointer1: true,
-			fnDrawPointer2: true
+			fnDrawPointer2: true,
+			fnDrawPointer3: true
 		};
 		if(options) {
 			$.extend(settings, options);
@@ -33,20 +39,23 @@ class ColorPicker {
 		Object.assign(this, settings);
 		// this.element = this.element.width();
 
-		$(settings.linkedElement).width(settings.width);
-		$(settings.linkedElement).height(settings.height);
+		$(settings.targetObject).width(settings.width);
+		$(settings.targetObject).height(settings.height);
+		// Fix the default alpha value
+		settings.initialColor.a = COLOR_SPACE.fixDefaultNumericValue(settings.initialColor.a, 100);
+		this.currentAlpha = 100;
 		// ACTIONS
 		if(this.flat) {
-			this._buildUI(settings.linkedElement);
+			this._buildUI(settings.targetObject);
 		} else {
 			this._buildUI();
 		}
-		$(settings.linkedElement).find("canvas").each((k, item) => {
+		$(settings.targetObject).find("canvas").each((k, item) => {
 			let $canvas_container = $(item).closest(".canvas-container"),
 				w = $canvas_container.width(),
 				h = $canvas_container.height();
 			if($canvas_container.hasClass("color-map")) {
-				$(item).attr("width", w - 25);
+				$(item).attr("width", w);
 			} else {
 				$(item).attr("width", w);
 			}
@@ -54,27 +63,36 @@ class ColorPicker {
 		});
 		this.canvasMap = $(".color-map canvas")[0];
 		this.canvasBar = $(".color-bar canvas")[0];
+		this.canvasAlpha = $(".alpha-bar canvas")[0];
 		// ColorMap
-		this.colorMap = new ColorCanvas(this.canvasMap, false);
+		this.colorMap = new ColorCanvas(this.canvasMap, false, false);
 		if(settings.fnDrawPointer1) {
 			this.colorMap.drawPointer = settings.fnDrawPointer1;
 		}
 		// ColorBar
-		this.colorBar = new ColorCanvas(this.canvasBar, true);
+		this.colorBar = new ColorCanvas(this.canvasBar, true, false);
 		if(settings.fnDrawPointer2) {
 			this.colorBar.drawPointer = settings.fnDrawPointer2;
 		}
+		// AlphaBar
+		this.alphaBar = new ColorCanvas(this.canvasAlpha, false, true);
+		if(settings.fnDrawPointer3) {
+			this.alphaBar.drawPointer = settings.fnDrawPointer3;
+		}
+
 		this.setInitialColor(settings.initialColor);
 		this._showHEXInput(settings.showColor);
 		this._showPreviewBox(settings.showPreview);
+		// console.log(this.colorBar);
 		$(this.canvasMap).data({"ME": this.colorMap, "YOU": this.colorBar});
 		$(this.canvasBar).data({"YOU": this.colorMap, "ME": this.colorBar});
+		this.currentAlpha = $("#alpha").val();
 
 		this._registerEvent();
 
 		//	 // this.setColor({r: 64, g: 128, b: 128});
 		if(this._isInput()) {
-			let val = $(this.linkedElement).val();
+			let val = $(this.targetObject).val();
 			if(val.length === 6) {
 				this.currentColor = ColorSpace.parseColor(val);
 				if(!this.currentColor) {
@@ -90,7 +108,7 @@ class ColorPicker {
 	}
 
 	_isInput() {
-		return (this.linkedElement && this.linkedElement[0].nodeName.toLowerCase() === "input" && $(this.linkedElement).attr("type") === "text");
+		return (this.targetObject && this.targetObject[0].nodeName.toLowerCase() === "input" && $(this.targetObject).attr("type") === "text");
 	}
 
 	CLAMP(c, min, max) {
@@ -100,13 +118,16 @@ class ColorPicker {
 		return Math.round(c);
 	}
 
-	_restoreToInitial() {
+	_restoreToInitial(color) {
+		if(color === undefined) { color = this.initialColor; }
 		// if(this._isInput()) {
-		// 	$(this.linkedElement).val(COLOR_SPACE.RGB2HEX(this.initialColor));
+		// 	$(this.targetObject).val(COLOR_SPACE.RGBA2HEX(this.initialColor));
 		// } else {
-		// 	$(".cur-color").css("background-color","rgb(" + this.initialColor.r + "," + this.initialColor.g + "," + this.initialColor.b + ")");
+		// 	$(".cur-color").css("background-color", "rgba(" + this.initialColor.r + ", " + this.initialColor.g + ", " + this.initialColor.b + ", " + this.initialColor.a + ")");
 		// }
-		this.colorChanged(this.initialColor);
+		// this.currentAlpha = 100;
+		this.colorChanged(color);
+		this.setColor(color);
 	}
 
 	_registerEvent() {
@@ -114,11 +135,14 @@ class ColorPicker {
 		this.mouseStarted = false;
 
 		if(this._isInput()) {
-			$(this.linkedElement).on("focus", () => {
+			$(this.targetObject).on("focus", () => {
 				// _this.show();
 			});
 		} else {
 			$(".canvas-container").on("mousedown", (event) => {
+				this.isAlphaBar = $(event.target).hasClass("alphabar");
+				this.isHueBar = $(event.target).hasClass("huebar");
+				this.isColorMap = $(event.target).hasClass("alphabar");
 				// _this.show();
 				this.mouseStarted = true;
 				let offset = $(event.target).offset(),
@@ -131,20 +155,28 @@ class ColorPicker {
 						x = event.pageX - offset.left,
 						y = event.pageY - offset.top;
 					this._trackChanging(x, y, $(event.target));
+				} else {
+					this.isAlphaBar = false;
+					this.isHueBar = false;
+					this.isColorMap = false;
 				}
 			}).on("mouseup mouseout", () => {
 				this.mouseStarted = false;
+				this.isAlphaBar = false;
+				this.isHueBar = false;
+				this.isColorMap = false;
 			});
 		}
-		$(".old-color").on("click", () => {
-			this._restoreToInitial();
+		$(".old-color").on("click", (event) => {
+			this._restoreToInitial(COLOR_SPACE.RGBAstring2RGBA($(event.target).css("backgroundColor")));
 		});
 		$(".cur-color").click(() => {
-			this.initialColor = this.currentColor;
-			$(".old-color").css("background-color","rgb(" + _this.initialColor.r + "," + _this.initialColor.g + "," + _this.initialColor.b +")");
+			_this.initialColor = this.currentColor;
+			_this.currentColor.a = parseInt($("#alpha").val());
+			$(".old-color").css("background-color", "rgba(" + _this.initialColor.r + ", " + _this.initialColor.g + ", " + _this.initialColor.b + ", " + (_this.initialColor.a/100) + ")");
 		});
 
-		$("input[name=R], input[name=G], input[name=B]").on("keyup", (event) => {
+		$("input[name=R], input[name=G], input[name=B], input[name=A]").on("keyup", (event) => {
 			let v = $(event.target).val();
 			if(!isNaN(parseFloat(v)) && isFinite(v)) {
 				v = this.CLAMP(v, 0, 255);
@@ -152,10 +184,12 @@ class ColorPicker {
 					case "R": this.currentColor.r = v; break;
 					case "G": this.currentColor.g = v; break;
 					case "B": this.currentColor.b = v; break;
+					case "A": this.currentColor.a = $("#alpha").val(); break;
 				}
 				this.setColor(this.currentColor);
 				this.colorChanged(this.currentColor);
 			} else {
+				this.currentColor.a = $("#alpha").val();
 				this.setColor(this.currentColor);
 			}
 		});
@@ -163,7 +197,7 @@ class ColorPicker {
 		$("input[name=H], input[name=S], input[name=Br]").on("keyup", (event) => {
 			let v = $(event.target).val();
 			if(!isNaN(parseFloat(v)) && isFinite(v)) {
-				var hsb = COLOR_SPACE.rgb2hsb(this.currentColor);
+				var hsb = COLOR_SPACE.RGBA2HSB(this.currentColor);
 				// hsb.s = parseInt((hsb.s / 255 * 100).toFixed(0));
 				// hsb.v = parseInt((hsb.v / 255 * 100).toFixed(0));
 				v = parseFloat(v);
@@ -172,39 +206,44 @@ class ColorPicker {
 					case "S": v = this.CLAMP(v, 0, 100); hsb.s = (v * 255 / 100);	break;
 					case "V": v = this.CLAMP(v, 0, 100); hsb.v = (v * 255 / 100);	break;
 				}
-				this.currentColor = COLOR_SPACE.hsb2rgb(hsb);
-				this.setColor(_this.currentColor);
-				this.colorChanged(_this.currentColor);
+				this.currentColor = COLOR_SPACE.HSB2RGBA(hsb);
+				this.currentColor.a = $("#alpha").val();
+				this.setColor(this.currentColor);
+				this.colorChanged(this.currentColor);
 			} else {
+				this.currentColor.a = $("#alpha").val();
 				this.setColor(this.currentColor);
 			}
 		});
 
-		$("input[name=C], input[name=Y], input[name=M], input[name=K]").on("keyup", (event) => {
+		$("input[name=C], input[name=M], input[name=Y], input[name=K]").on("keyup", (event) => {
 			let v = $(event.target).val();
 			if(!isNaN(parseFloat(v)) && isFinite(v)) {
-				var ymck = COLOR_SPACE.rgb2ymck(this.currentColor);
+				var cmyk = COLOR_SPACE.RGBA2CMYK(this.currentColor);
 				switch(event.target.name) {
-					case "C": v = this.CLAMP(v, 0, 100); ymck.c = v; break;
-					case "M": v = this.CLAMP(v, 0, 100); ymck.m = v; break;
-					case "Y": v = this.CLAMP(v, 0, 100); ymck.y = v; break;
-					case "K": v = this.CLAMP(v, 0, 100); ymck.k = v; break;
+					case "C": v = this.CLAMP(v, 0, 100); cmyk.c = v; break;
+					case "M": v = this.CLAMP(v, 0, 100); cmyk.m = v; break;
+					case "Y": v = this.CLAMP(v, 0, 100); cmyk.y = v; break;
+					case "K": v = this.CLAMP(v, 0, 100); cmyk.k = v; break;
 				}
-				this.currentColor = COLOR_SPACE.ymck2rgb(ymck);
+				this.currentColor = COLOR_SPACE.CMYK2RGBA(cmyk);
+				this.currentColor.a = $("#alpha").val();
 				this.setColor(this.currentColor);
 				this.colorChanged(this.currentColor);
 			} else {
-				_this.setColor(_this.currentColor);
+				_this.setColor(this.currentColor);
 			}
 		});
 
 		$("input[name=HEX]").on("change", (event) => {
 			let color = COLOR_SPACE.parseColor($(event.target).val());
+			color.a = $("#alpha").val();
 		}).on("focus", (event) => {
 			$(event.target).select();
 		}).on("keyup", (event) => {
 			if($(event.target).val().length == 6) {
 				let color = COLOR_SPACE.parseColor($(event.target).val());
+				color.a = $("#alpha").val();
 				this.changeColor(color);
 			}
 		});
@@ -219,12 +258,15 @@ class ColorPicker {
 
 	setInitialColor(color) {
 		this.initialColor = color;
-		$(".old-color").css("backgroundColor", COLOR_SPACE.RGB2HEX(color));
+		$(".old-color").css("backgroundColor", COLOR_SPACE.RGBA2HEX(color));
 		this.setColor(color);
 	}
 
 	setColor(color) {
 		this.currentColor = color;
+		if(this.currentColor.a === undefined) {
+			this.currentColor.a = this.currentAlpha;
+		}
 		this.setColorText(this.currentColor);
 		this.colorMap.setColor(this.currentColor);
 		this.colorBar.setColor(this.currentColor);
@@ -232,103 +274,83 @@ class ColorPicker {
 
 	_trackChanging(x, y, canvas) {
 		let x1 = this.CLAMP(((x * 255) / canvas.width()), 0, 255),
-			y1 = this.CLAMP(((y * 255) / canvas.height()), 0, 255);
-		canvas.data("ME").setXY(x1, y1);
-		//
-		let color = canvas.data("ME").getColor();
-		canvas.data("YOU").setColor(color);
-		//
-		if(color) {
-			this.colorChanged(color);
+			y1 = this.CLAMP(((y * 255) / canvas.height()), 0, 255),
+			alpha = (this.isAlphaBar) ? Math.round(((canvas.height() - y) / canvas.height()) * 100) : $("#alpha").val();
+		if(this.isAlphaBar) {
+			this.currentAlpha = alpha;
+			this.currentColor.a = this.currentAlpha;
+			this.changeColor(this.currentColor);
+			$("#alpha").val(this.currentAlpha);
 		}
+
+		if(canvas.data("ME") !== undefined) {
+			let color = canvas.data("ME").getColor();
+			canvas.data("ME").setXY(x1, y1);
+			canvas.data("YOU").setColor(color);
+			if(color) {
+				this.colorChanged(color);
+			}
+		}
+		//
 	}
 
 	colorChanged(color) {
 		this.currentColor = color;
-		this.setColorText(color);
+		if(this.currentColor.a === undefined) {
+			this.currentColor.a = parseInt(this.currentAlpha);
+		}
+		this.setColorText(this.currentColor);
 
 		if(this._isInput()) {
-			$(this.linkedElement).val(COLOR_SPACE.RGB2HEX(color));
+			$(this.targetObject).val(COLOR_SPACE.RGBA2HEX(color));
 		} else {
-			$(".cur-color").css("background-color","rgb(" + color.r + "," + color.g + "," + color.b + ")");
+			$(".cur-color").css("background-color", "rgba(" + color.r + ", " + color.g + ", " + color.b + ", " + (color.a/100) + ")");
 		}
 
 		if(this.onColorChange) {
-			this.onColorChange(color,COLOR_SPACE.rgb2hsb(color));
+			this.onColorChange(color, COLOR_SPACE.RGBA2HSB(color));
+		}
+	}
+
+	alphaChanged(alpha) {
+		if(this._isInput()) {
+			$(this.targetObject).val(COLOR_SPACE.RGBA2HEX(this.currentColor));
+		} else {
+			$(".cur-color").css("background-color", "rgba(" + this.currentColor.r + ", " + this.currentColor.g + ", " + this.currentColor.b + ", " + (alpha/100) + ")");
+		}
+
+		if(this.onColorChange) {
+			this.onColorChange(this.currentColor, COLOR_SPACE.RGBA2HSB(this.currentColor));
 		}
 	}
 
 	setColorText(color) {
-		$("input[name=HEX]").val(COLOR_SPACE.RGB2HEX(color));
-
+		let hsb = COLOR_SPACE.RGBA2HSB(color),
+			cmyk = COLOR_SPACE.RGBA2CMYK(color);
+		hsb.s = (hsb.s / 255 * 100).toFixed(0);
+		hsb.b = (hsb.b / 255 * 100).toFixed(0);
+		$("input[name=HEX]").val(COLOR_SPACE.RGBA2HEX(color));
 		$("input[name=R]").val(color.r);
 		$("input[name=G]").val(color.g);
 		$("input[name=B]").val(color.b);
-		var hsb = COLOR_SPACE.rgb2hsb(color);
-		hsb.s = (hsb.s / 255 * 100).toFixed(0);
-		hsb.v = (hsb.v / 255 * 100).toFixed(0);
+		$("input[name=A]").val(color.a);
+
 		$("input[name=H]").val(hsb.h);
 		$("input[name=S]").val(hsb.s);
-		$("input[name=Br]").val(hsb.v);
-		var ymck = COLOR_SPACE.rgb2ymck(color);
-		$("input[name=Y]").val(ymck.y);
-		$("input[name=M]").val(ymck.m);
-		$("input[name=C]").val(ymck.c);
-		$("input[name=K]").val(ymck.k);
+		$("input[name=Br]").val(hsb.b);
 
-		$(".preview .cur-color").css("background-color","rgb(" + color.r + "," + color.g + "," + color.b + ")");
-		$(this.linkedElement).data("current_color",color);
+		$("input[name=C]").val(cmyk.c);
+		$("input[name=M]").val(cmyk.m);
+		$("input[name=Y]").val(cmyk.y);
+		$("input[name=K]").val(cmyk.k);
+
+		$(".preview .cur-color").css("background-color", "rgba(" + color.r + ", " + color.g + ", " + color.b + ", " + (color.a/100) + ")");
+		$(this.targetObject).data("current_color", color);
 	}
 
 	getColor() {
 		return this.currentColor;
 	}
-
-	// show() {
-	// 	if(this.element[0].css.visibility == "hidden") {
-	// 		let offset = $(this.linkedElement).offset(),
-	// 			left = offset.left,
-	// 			top = offset.top + $(this.linkedElement).outerHeight(),
-	// 			color = $(this.linkedElement).data("current_color");
-	//
-	// 		if(left + this.element[0].width() > $(window).width() + $("body").scrollLeft()) {
-	// 			left = $(window).width() + $("body").scrollLeft() - this.element.width() - 10;
-	// 		}
-	// 		if(top + this.element.height() > $(window).height() + $(window).scrollTop()) {
-	// 			top =  offset.top - this.element.height() - 10;
-	// 		}
-	//
-	// 		this._mask.css("display","");
-	// 		this.element[0].css({
-	// 			"visibility": "visible",
-	// 			"left": left + "px",
-	// 			"top": top + "px"
-	// 		}).animate({
-	// 			opacity: 1
-	// 		}, 300);
-	// 		if(this.linkedElement[0].nodeName.toLowerCase() === "input" && $(this.linkedElement).attr("type") === "text") {
-	// 			let val = $(this.linkedElement).val();
-	// 			if(val.length === 7 && val.charAt(0) === "#") {
-	// 				color = COLOR_SPACE.parseColor(val);
-	// 			}
-	// 		}
-	//
-	// 		if(color) {
-	// 			this.setInitialColor(color);
-	// 		}
-	// 	}
-	// }
-
-	// hide() {
-	// 	if(this.element[0].css.visibility !== "hidden") {
-	// 		this._mask.css("display", "none");
-	// 		this.element[0].animate({
-	// 			opacity: 0
-	// 		}, 300, () => {
-	// 			$(this).css("visibility", "hidden");
-	// 		});
-	// 	}
-	// }
 
 	_buildUI(element) {
 		let idext = Math.round(Math.random() * 1000000 * (new Date())),
@@ -360,7 +382,7 @@ class ColorPicker {
 					height: h + "px"
 				};
 			} else {
-				e.css("position","relative");
+				e.css("position", "relative");
 				this.css = {
 					position: "absolute",
 					left: "0px",
@@ -375,7 +397,7 @@ class ColorPicker {
 			e.append(
 				// mask
 				$("<div></div>")
-					.attr("id","cp-mask-" + idext)
+					.attr("id", "cp-mask-" + idext)
 					.css({
 						position: "absolute",
 						left: "0px",
@@ -407,6 +429,10 @@ class ColorPicker {
 					$("<canvas>", {"class": "huebar"})
 				)
 			).append(
+				$("<div>", {"class": "alpha-bar canvas-container"}).append(
+					$("<canvas>", {"class": "alphabar"})
+				)
+			).append(
 				$("<div>", {"class": "preview"}).append(
 					$("<div>", {"class": "cur-color"})
 				).append(
@@ -423,7 +449,7 @@ class ColorPicker {
 							$("<label>").append("B:").append($("<input>", {"type": "text", "name": "Br", "size": "3", "maxlength": "3"})).append("%")
 						)
 					).append(
-						$("<div>", {"class": "rgb"}).append(
+						$("<div>", {"class": "rgba"}).append(
 							$("<label>").append("R:").append($("<input>", {"type": "text", "name": "R", "size": "3", "maxlength": "3"}))
 						).append(
 							$("<label>").append("G:").append($("<input>", {"type": "text", "name": "G", "size": "3", "maxlength": "3"}))
@@ -444,6 +470,8 @@ class ColorPicker {
 					)
 				).append(
 					$("<div>", {"class": "color"}).append(
+						$("<label>").append("Alpha:").append($("<input>", {"type": "number", "name": "A", "id": "alpha", "min": "0", "max": "100", "size": "3", "maxlength": "3"}))
+					).append(
 						$("<label>").append("HEX: #").append($("<input>", {"type": "text", "name": "HEX", "id": "HEX", "size": "6", "maxlength": "6"}))
 					)
 				).append(
@@ -463,11 +491,11 @@ class ColorPicker {
 		);
 	}
 
-	_showRGBInput(flag) {
+	_showRGBAInput(flag) {
 		if(flag) {
-			$(".form .rgb").show();
+			$(".form .rgba").show();
 		} else {
-			$(".form .rgb").hide();
+			$(".form .rgba").hide();
 		}
 	}
 
@@ -506,14 +534,15 @@ class ColorPicker {
 		this.element.width(w);
 		$(".colormap").width(w).height(h);
 		$(".huebar").width(w).height(h);
+		$(".alphabar").width(w).height(h);
 		if(h < 150) {
-			this._showRGBInput(false)._showHSBInput(false);
+			this._showRGBAInput(false)._showHSBInput(false);
 		}
 		if(h < 100) {
 			this.showPreview(false)._showHEXInput(false);
 		}
 		if(w < 200) {
-			this._showRGBInput(false)._showHSBInput(false).showPreview(false)._showHEXInput(false);
+			this._showRGBAInput(false)._showHSBInput(false).showPreview(false)._showHEXInput(false);
 		}
 		this._rearrange();
 	}
@@ -522,7 +551,7 @@ class ColorPicker {
 		let w = this.element.width(),
 			h = this.element.height();
 		if(h < 200) {
-			this._showRGBInput(false);
+			this._showRGBAInput(false);
 			this._showHSBInput(false);
 		}
 		$(".colormap").attr({
@@ -530,14 +559,15 @@ class ColorPicker {
 			"height": $(".color-map").height()
 		});
 		$(".huebar").attr("height", $(".color-bar").height());
+		$(".colorbar").attr("height", $(".color-bar").height());
 
-		let rgb = $(".form .rgb"),
+		let rgba = $(".form .rgba"),
 			hsb = $(".form .hsb"),
 			clr = $(".form .color"),
 			btns = $(".buttons"),
 			preview = $(".preview");
 
-		if(rgb.css("display") == "none" && hsb.css("display") == "none" && clr.css("display") == "none" && btns.css("display") == "none" && preview.css("display") == "none") {
+		if(rgba.css("display") == "none" && hsb.css("display") == "none" && clr.css("display") == "none" && btns.css("display") == "none" && preview.css("display") == "none") {
 			$(".color-map").css("right", "30px");
 			$(".color-bar").css("right", "5px");
 
@@ -547,13 +577,13 @@ class ColorPicker {
 			});
 		}
 
-		if(rgb.css("display") == "none" && hsb.css("display") == "none" && clr.css("display") == "none") {
+		if(rgba.css("display") == "none" && hsb.css("display") == "none" && clr.css("display") == "none") {
 			$(".form").hide();
 		} else {
 			$(".form").show();
 		}
 
-		if(rgb.css("display") == "none" && hsb.css("display") == "none") {
+		if(rgba.css("display") == "none" && hsb.css("display") == "none") {
 			$(".buttons").css("height", "50px");
 			$(".buttons button").css("width", "110px");
 		} else {
